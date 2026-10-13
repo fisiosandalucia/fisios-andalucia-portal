@@ -1,0 +1,9 @@
+const list=document.querySelector('#news-list');
+const count=document.querySelector('#result-count');
+const search=document.querySelector('#search');
+const category=document.querySelector('#category');
+let news=[];
+const normalize=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function render(){const q=normalize(search.value.trim());const selected=news.filter(n=>(!category.value||n.category===category.value)&&normalize(n.title+' '+n.summary).includes(q));list.replaceChildren();count.textContent=news.length?`${selected.length} noticias`:'';if(!selected.length){const p=document.createElement('p');p.className='empty';p.textContent=news.length?'No hay noticias con esos criterios. Prueba otra búsqueda.':'Estamos preparando las primeras noticias. Aquí encontrarás las novedades una vez revisadas y publicadas.';list.append(p)}for(const n of selected){const article=document.createElement('article');const meta=document.createElement('p');meta.className='meta';meta.textContent=n.category+' · '+new Intl.DateTimeFormat('es-ES',{dateStyle:'long',timeZone:'Europe/Madrid'}).format(new Date(n.publishedAt));const h=document.createElement('h3');const a=document.createElement('a');a.href='noticias/'+n.slug+'/';a.textContent=n.title;h.append(a);const p=document.createElement('p');p.textContent=n.summary;article.append(meta,h,p);list.append(article)}}
+document.querySelector('#filters').addEventListener('submit',e=>e.preventDefault());search.addEventListener('input',render);category.addEventListener('change',render);
+fetch('content/noticias.json').then(r=>{if(!r.ok)throw Error();return r.json()}).then(data=>{news=data;render()}).catch(()=>{count.textContent='No se han podido cargar las noticias. Recarga la página para volver a intentarlo.'});
